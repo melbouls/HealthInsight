@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HealthInsight Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .status { font-weight: bold; color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <h1>Tableau de Bord Santé - Patient: Ali</h1>
+    
+    <div class="card">
+        <h2>Alerte Temps Réel</h2>
+        <div id="risk-score">Chargement du score de risque...</div>
+    </div>
+
+    <div class="card">
+        <canvas id="statsChart"></canvas>
+    </div>
+
+    <script>
+        // Simulation d'appel à ton API Node.js (Etape 6/7)
+        async function loadData() {
+            // Ici on récupère les stats générées par Spark
+            const response = await fetch('http://localhost:3000/stats'); 
+            const data = await response.json();
+            
+            const ctx = document.getElementById('statsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.type),
+                    datasets: [{
+                        label: 'Moyenne Hospitalière (Calculée par Spark)',
+                        data: data.map(d => d.moyenne),
+                        backgroundColor: '#3498db'
+                    }]
+                }
+            });
+        }
+        loadData();
+    </script>
+</body>
+</html>
