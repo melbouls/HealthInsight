@@ -1,0 +1,24 @@
+services:
+  api:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+   
+
+  spark:
+    image: apache/spark:3.5.0
+    container_name: spark
+    user: root
+    environment:
+      - SPARK_MODE=master
+    # On utilise cette commande pour forcer Spark à rester allumé
+    entrypoint: ["/bin/sh", "-c", "tail -f /dev/null"]
+    volumes:
+      - ./spark:/opt/spark/jobs
+    depends_on:
+      - mongo
