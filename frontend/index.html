@@ -20,28 +20,53 @@
     <div class="card">
         <canvas id="statsChart"></canvas>
     </div>
-
-    <script>
-        // Simulation d'appel à ton API Node.js (Etape 6/7)
-        async function loadData() {
-            // Ici on récupère les stats générées par Spark
-            const response = await fetch('http://localhost:3000/stats'); 
-            const data = await response.json();
+<script>
+    async function loadData() {
+        try {
+            // 1. Récupération des statistiques Spark (Moyennes)
+            const resStats = await fetch('http://localhost:3000/stats');
+            const dataStats = await resStats.json();
             
             const ctx = document.getElementById('statsChart').getContext('2d');
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: data.map(d => d.type),
+                    labels: dataStats.map(d => d.type),
                     datasets: [{
-                        label: 'Moyenne Hospitalière (Calculée par Spark)',
-                        data: data.map(d => d.moyenne),
-                        backgroundColor: '#3498db'
+                        label: 'Moyenne Globale (Analyse Spark)',
+                        data: dataStats.map(d => d.moyenne),
+                        backgroundColor: '#3498db',
+                        borderRadius: 5
                     }]
+                },
+                options: {
+                    scales: { y: { beginAtZero: true } }
                 }
             });
+
+            // 2. Récupération des infos du patient Ali (Score de risque en temps réel)
+            // Note: On suppose qu'Ali a l'ID "p1" comme dans tes tests
+            const resPatient = await fetch('http://localhost:3000/patients/p1/readings');
+            const lastReadings = await resPatient.json();
+            
+            const riskDiv = document.getElementById('risk-score');
+            if (lastReadings.length > 0) {
+                const isCritical = lastReadings[0].abnormal; // Vérifie la dernière mesure
+                riskDiv.innerHTML = `
+                    <p>Statut actuel : <span class="status" style="color: ${isCritical ? '#e74c3c' : '#2ecc71'}">
+                        ${isCritical ? '⚠️ ALERTE : Rythme élevé' : '✅ Stable'}
+                    </span></p>
+                    <p>Dernière valeur : <strong>${lastReadings[0].value} BPM</strong></p>
+                `;
+            }
+
+        } catch (error) {
+            console.error("Erreur de chargement :", error);
+            document.getElementById('risk-score').innerText = "Erreur de connexion à l'API";
         }
-        loadData();
-    </script>
+    }
+    
+    loadData();
+</script>
 </body>
 </html>
